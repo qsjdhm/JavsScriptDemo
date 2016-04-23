@@ -5,6 +5,85 @@
 	<title>JS自定义事件</title>
 </head>
 <body>
+	<input id="fire" type="button" value="触发事件" />
+	<input id="remove" type="button" value="删除事件" />
+	<script type="text/javascript">
 
+		// 自定义事件对象
+		var Event = {
+			_listeners : [],  // 存放绑定的各种事件
+			addEvent : function(type, fn){
+				if(typeof this._listeners[type] === "undefined"){
+					// 如果当前listeners没有要绑定的type事件，设为空数组
+					this._listeners[type] = [];
+				}
+				if(typeof fn === "function"){
+					// 向缓存中塞type类型的fn方法
+					this._listeners[type].push(fn);
+				}
+				// 返回Event对象本身，外部可以链式调用方法
+				return this;
+			},
+			fireEvent : function(type){
+				// 从缓存中取出type类型的事件集合
+				var eventArray = this._listeners[type];
+				if(eventArray instanceof Array){
+					for(var i = 0, len = eventArray.length; i < len; i++){
+						if(typeof eventArray[i] === "function"){
+							// 触发缓存中的i事件并返回类型
+							eventArray[i]({"type" : type});
+						}
+					}
+				}
+				return this;
+			},
+			removeEvent : function(type, fn){
+				var eventArray = this._listeners[type];
+				if(typeof type === "string" && eventArray instanceof Array){
+					if(typeof fn === "function"){
+						for(var i = 0, len = eventArray.length; i < len; i++){
+							// 如果删除的是fn这个方法
+							if(eventArray[i] === fn){
+								this._listeners[type].splice(i, 1);
+							}
+						}
+					}else{
+						// 如果fn不是个方法或者没传递fn这个参数，就全部已出type类型的事件
+						delete this._listeners[type];
+					}
+				}
+				return this;
+			},
+		};
+
+
+		var fire = document.getElementById("fire");
+		var remove = document.getElementById("remove");
+
+
+		var alert1 = function(obj){
+			alert("alert1");
+		};
+		var alert2 = function(obj){
+			alert("alert2");
+		};
+		var console1 = function(obj){
+			alert("console1");
+		};
+
+		window.onload = function(){
+			Event.addEvent("alert", alert1)
+					.addEvent("alert", alert2)
+					.addEvent("console", console1);
+
+			fire.onclick = function(){
+				Event.fireEvent("alert").fireEvent("console");
+			};
+
+			remove.onclick = function(){
+				Event.removeEvent("alert", alert1);
+			};
+		};
+	</script>
 </body>
 </html>
